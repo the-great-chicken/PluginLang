@@ -86,4 +86,66 @@ public class LexerTest {
             assertEquals(null, lexer.next_token(false));
         }
     }
+    @Test
+    public void operandArray () {
+        String[] operands = {
+            "+",
+            "-",
+            "*",
+            "/",
+            "|",
+            ">",
+            "<",
+            ">=",
+            "<=",
+            "!=",
+            "=="
+        };
+        TokenType[] types = {
+            TokenType.PLUS,
+            TokenType.MINUS,
+            TokenType.TIMES,
+            TokenType.DIVIDE,
+            TokenType.PIPE,
+            TokenType.GT,
+            TokenType.LE,
+            TokenType.GTEQ,
+            TokenType.LEEQ,
+            TokenType.NEQ,
+            TokenType.EQ
+        };
+        int [] indices = {
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+            8, 2, 7, 3, 4, 0, 10, 9, 1, 5, 6,
+            1, 0, 3, 9, 10, 7, 5, 8, 2, 6, 4,
+            6, 4, 7, 0, 8, 10, 1, 3, 9, 2, 5
+        };
+
+        String s = "";
+        for (int id : indices) s += operands[id];
+
+        LexerFile file = new LexerFile("<test>", String.valueOf(s));
+        Lexer    lexer = new Lexer(file);
+
+        int col = 1;
+        int idx = 0;
+        int lin = 1;
+        int tid = 0;
+        
+        Token[] tokens = lexer.build();
+        assertEquals(indices.length, tokens.length);
+
+        for (Token tok : tokens) {
+            assertEquals(types[indices[tid]], tok.type);
+            assertEquals(null, tok.value);
+            assertEquals(file, tok.file);
+            assertEquals(idx, tok.idx);
+            assertEquals(col, tok.col);
+            assertEquals(lin, tok.row);
+
+            idx += operands[indices[tid]].length();
+            col += operands[indices[tid]].length();
+            tid ++;
+        }
+    }
 }

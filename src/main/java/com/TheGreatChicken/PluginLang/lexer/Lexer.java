@@ -1,7 +1,13 @@
 package com.TheGreatChicken.PluginLang.lexer;
 
+import java.util.ArrayList;
+
+import com.TheGreatChicken.PluginLang.utils.CharList;
+import com.TheGreatChicken.PluginLang.utils.Trie;
+
 public class Lexer {
     public final LexerFile file;
+
     private int idx = 0;
     private int bol = - 1;
     private int row = 1;
@@ -9,6 +15,26 @@ public class Lexer {
     public int __p_idx = 0;
     public int __p_bol = 0;
     public int __p_row = 0;
+
+    public static final Trie<Character, TokenType> OPERAND_TRIE;
+
+    static {
+        OPERAND_TRIE = new Trie<>();
+
+        OPERAND_TRIE.put( new CharList("+" ), TokenType.PLUS   );
+        OPERAND_TRIE.put( new CharList("-" ), TokenType.MINUS  );
+        OPERAND_TRIE.put( new CharList("*" ), TokenType.TIMES  );
+        OPERAND_TRIE.put( new CharList("/" ), TokenType.DIVIDE );
+        OPERAND_TRIE.put( new CharList("|" ), TokenType.PIPE   );
+
+        OPERAND_TRIE.put( new CharList("=="), TokenType.EQ   );
+        OPERAND_TRIE.put( new CharList("!="), TokenType.NEQ  );
+        OPERAND_TRIE.put( new CharList(">="), TokenType.GTEQ );
+        OPERAND_TRIE.put( new CharList(">" ), TokenType.GT   );
+        OPERAND_TRIE.put( new CharList("<="), TokenType.LEEQ );
+        OPERAND_TRIE.put( new CharList("<" ), TokenType.LE   );
+    }
+
     private void prepare ()  {
         __p_idx = idx;
         __p_bol = bol;
@@ -76,10 +102,33 @@ public class Lexer {
         if (is_name())
             return compute_name(TokenType.NAME, false);   
         
+        TokenType operand = OPERAND_TRIE.collision(this.file.sourceList, idx);
+        if (operand != null) {
+            prepare();
+
+            for (int d = 0; d < operand.fixed_delta; d ++)
+                chop_char();
+            
+            return make_token(operand);
+        }
+
         if (log) {
             prepare();
             System.out.println("[PluginLang] Could not read element " + make_token(TokenType.NAME).getMessage());
         }
         return null;
+    }
+
+    public Token[] build () {
+        Token token;
+        ArrayList<Token> tokens = new ArrayList<Token>();
+        while ((token = this.next_token()) != null)
+            tokens.add(token);
+        
+        Token[] result = new Token[tokens.size()];
+        for (int i = 0; i < tokens.size(); i ++)
+            result[i] = tokens.get(i);
+
+        return result;
     }
 }

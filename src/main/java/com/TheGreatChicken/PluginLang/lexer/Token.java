@@ -26,4 +26,11 @@ public class Token {
     public String getMessage () {
         return "at file " + file.name + " at col " + this.col + " at line " + this.row;
     }
+
+    public String toString () {
+        String s0 = type + ":" + value;
+        while (s0.length() < 20) s0 += " ";
+        
+        return (s0 + " <= " + getMessage());
+    }
 }
